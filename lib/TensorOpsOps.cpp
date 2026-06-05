@@ -16,20 +16,22 @@
 // MatmulOp verifier
 //===----------------------------------------------------------------------===//
 
-mlir::LogicalResult tensor::MatmulOp::verify() {
-  auto lhsType = getLhs().getType().dyn_cast<mlir::RankedTensorType>();
-  auto rhsType = getRhs().getType().dyn_cast<mlir::RankedTensorType>();
+mlir::LogicalResult ten::MatmulOp::verify() {
+  auto lhsType = getLhs().getType();
+  auto rhsType = getRhs().getType();
 
-  if (!lhsType || !rhsType)
+  if (!mlir::isa<mlir::RankedTensorType>(lhsType) || !mlir::isa<mlir::RankedTensorType>(rhsType))
     return emitOpError("operands must be ranked tensors");
 
-  if (lhsType.getRank() != 2 || rhsType.getRank() != 2)
+  auto lhsRT = mlir::cast<mlir::RankedTensorType>(lhsType);
+  auto rhsRT = mlir::cast<mlir::RankedTensorType>(rhsType);
+
+  if (lhsRT.getRank() != 2 || rhsRT.getRank() != 2)
     return emitOpError("matmul requires 2D tensors");
 
-  // Check inner dimensions match: lhs[K] == rhs[K]
-  if (lhsType.getDimSize(1) != rhsType.getDimSize(0))
+  if (lhsRT.getDimSize(1) != rhsRT.getDimSize(0))
     return emitOpError("shape mismatch: lhs columns (")
-           << lhsType.getDimSize(1) << ") != rhs rows (" << rhsType.getDimSize(0)
+           << lhsRT.getDimSize(1) << ") != rhs rows (" << rhsRT.getDimSize(0)
            << ")";
 
   return mlir::success();
@@ -39,9 +41,8 @@ mlir::LogicalResult tensor::MatmulOp::verify() {
 // ReluOp verifier
 //===----------------------------------------------------------------------===//
 
-mlir::LogicalResult tensor::ReluOp::verify() {
-  auto inputType = getInput().getType().dyn_cast<mlir::RankedTensorType>();
-  if (!inputType)
+mlir::LogicalResult ten::ReluOp::verify() {
+  if (!mlir::isa<mlir::RankedTensorType>(getInput().getType()))
     return emitOpError("input must be a ranked tensor");
   return mlir::success();
 }
@@ -50,16 +51,19 @@ mlir::LogicalResult tensor::ReluOp::verify() {
 // AddOp verifier
 //===----------------------------------------------------------------------===//
 
-mlir::LogicalResult tensor::AddOp::verify() {
-  auto lhsType = getLhs().getType().dyn_cast<mlir::RankedTensorType>();
-  auto rhsType = getRhs().getType().dyn_cast<mlir::RankedTensorType>();
+mlir::LogicalResult ten::AddOp::verify() {
+  auto lhsType = getLhs().getType();
+  auto rhsType = getRhs().getType();
 
-  if (!lhsType || !rhsType)
+  if (!mlir::isa<mlir::RankedTensorType>(lhsType) || !mlir::isa<mlir::RankedTensorType>(rhsType))
     return emitOpError("operands must be ranked tensors");
 
-  if (lhsType.getShape() != rhsType.getShape())
+  auto lhsRT = mlir::cast<mlir::RankedTensorType>(lhsType);
+  auto rhsRT = mlir::cast<mlir::RankedTensorType>(rhsType);
+
+  if (lhsRT.getShape() != rhsRT.getShape())
     return emitOpError("shape mismatch: ")
-           << lhsType.getShape() << " != " << rhsType.getShape();
+           << lhsRT.getShape() << " != " << rhsRT.getShape();
 
   return mlir::success();
 }

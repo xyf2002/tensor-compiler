@@ -10,7 +10,7 @@
 #include "mlir/Pass/Pass.h"
 #include <memory>
 
-namespace tensor {
+namespace ten {
 
 //===----------------------------------------------------------------------===//
 // Conversion: TensorOps -> Linalg
@@ -30,6 +30,6 @@ std::unique_ptr<mlir::Pass> createFuseMatmulReluPass();
 
 void registerTensorOpsPasses();
 
-} // namespace tensor
+} // namespace ten
 
 #endif // TENSOR_OPS_PASSES_H

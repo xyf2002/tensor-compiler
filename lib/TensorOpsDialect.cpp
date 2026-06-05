@@ -10,7 +10,7 @@
 // Dialect initialization generated from ODS
 #include "TensorOpsDialect.cpp.inc"
 
-void tensor::TensorOpsDialect::initialize() {
+void ten::TensorOpsDialect::initialize() {
   addOperations<
 #define GET_OP_LIST
 #include "TensorOpsOps.cpp.inc"

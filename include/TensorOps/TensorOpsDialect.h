@@ -10,6 +10,6 @@
 #include "mlir/IR/Dialect.h"
 
 // Dialect class generated from ODS
-#include "TensorOps/TensorOpsDialect.h.inc"
+#include "TensorOpsDialect.h.inc"
 
 #endif // TENSOR_OPS_DIALECT_H

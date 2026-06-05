@@ -9,7 +9,7 @@
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassRegistry.h"
 
-namespace tensor {
+namespace ten {
 
 void registerTensorOpsPasses() {
   // Register both passes
@@ -17,4 +17,4 @@ void registerTensorOpsPasses() {
   mlir::registerPass(createFuseMatmulReluPass);
 }
 
-} // namespace tensor
+} // namespace ten

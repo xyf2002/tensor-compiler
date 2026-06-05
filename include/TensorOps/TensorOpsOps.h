@@ -17,6 +17,6 @@
 
 // Op classes generated from ODS
 #define GET_OP_CLASSES
-#include "TensorOps/TensorOpsOps.h.inc"
+#include "TensorOpsOps.h.inc"
 
 #endif // TENSOR_OPS_OPS_H
