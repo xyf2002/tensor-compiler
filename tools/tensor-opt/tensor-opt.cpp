@@ -19,10 +19,10 @@ int main(int argc, char **argv) {
   registerAllDialects(registry);
 
   // Register our custom TensorOps dialect
-  registry.insert<tensor::TensorOpsDialect>();
+  registry.insert<ten::TensorOpsDialect>();
 
   // Register our custom passes
-  tensor::registerTensorOpsPasses();
+  ten::registerTensorOpsPasses();
 
   return mlir::asMainReturnCode(
       mlir::MlirOptMain(argc, argv, "TensorOps optimizer driver\n", registry));
