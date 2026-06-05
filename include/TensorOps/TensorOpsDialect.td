@@ -10,8 +10,8 @@
 include "mlir/IR/DialectBase.td"
 
 def TensorOpsDialect : Dialect {
-  let name = "tensor";
-  let cppNamespace = "::tensor";
+  let name = "ten";
+  let cppNamespace = "::ten";
   let summary = "A dialect for basic tensor operations";
   let description = [{
     The TensorOps dialect provides basic tensor operations:
