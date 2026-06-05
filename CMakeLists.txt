@@ -9,13 +9,18 @@ find_package(MLIR REQUIRED CONFIG)
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "MLIR version: ${MLIR_VERSION}")
-message(STATUS "MLIR include dirs: ${MLIR_INCLUDE_DIRS}")
+message(STATUS "LLVM version: ${LLVM_VERSION}")
+
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+include(AddLLVM)
+include(TableGen)
+
+list(APPEND CMAKE_MODULE_PATH "${MLIR_DIR}")
+include(AddMLIR)
 
 include_directories(${MLIR_INCLUDE_DIRS})
+include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-# Enable tablegen support
-include(AddMLIR)
 
 # Subdirectories
 add_subdirectory(lib)
