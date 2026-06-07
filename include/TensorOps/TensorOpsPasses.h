@@ -31,6 +31,12 @@ std::unique_ptr<mlir::Pass> createFuseMatmulReluPass();
 std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
 
 //===----------------------------------------------------------------------===//
+// Pipeline: Linalg -> NVVM (NVIDIA GPU)
+//===----------------------------------------------------------------------===//
+
+std::unique_ptr<mlir::Pass> createLowerToNVVMPass();
+
+//===----------------------------------------------------------------------===//
 // Pipeline builder (lowering + fusion)
 //===----------------------------------------------------------------------===//
 
