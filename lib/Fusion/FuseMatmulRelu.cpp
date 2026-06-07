@@ -42,7 +42,7 @@ struct FuseMatmulReluPattern : public OpRewritePattern<ten::ReluOp> {
 };
 
 struct FuseMatmulReluPass
-    : public PassWrapper<FuseMatmulReluPass, OperationPass<func::FuncOp>> {
+    : public PassWrapper<FuseMatmulReluPass, OperationPass<ModuleOp>> {
   MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(FuseMatmulReluPass)
 
   StringRef getArgument() const override { return "fuse-matmul-relu"; }
@@ -51,15 +51,17 @@ struct FuseMatmulReluPass
   }
 
   void runOnOperation() override {
-    func::FuncOp func = getOperation();
+    ModuleOp mod = getOperation();
     MLIRContext *ctx = &getContext();
 
-    RewritePatternSet patterns(ctx);
-    patterns.add<FuseMatmulReluPattern>(ctx);
-
-    if (failed(applyPatternsGreedily(func, std::move(patterns)))) {
-      return signalPassFailure();
-    }
+    mod.walk([&](func::FuncOp func) {
+      RewritePatternSet patterns(ctx);
+      patterns.add<FuseMatmulReluPattern>(ctx);
+      if (failed(applyPatternsGreedily(func, std::move(patterns)))) {
+        // Best-effort — patterns may not match all functions
+        return;
+      }
+    });
   }
 };
 

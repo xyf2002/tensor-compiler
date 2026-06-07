@@ -1,0 +1,2 @@
+ptxas version: CUDA 12.0
+GPU: RTX 4080 Laptop, CC 8.9 (sm_89)

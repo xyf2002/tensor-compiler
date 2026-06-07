@@ -25,4 +25,5 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Subdirectories
 add_subdirectory(lib)
 add_subdirectory(tools/tensor-opt)
+add_subdirectory(tools/tensor-runner)
 add_subdirectory(tests)
