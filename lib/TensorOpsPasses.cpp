@@ -15,6 +15,7 @@ void registerTensorOpsPasses() {
   // Register both passes
   mlir::registerPass(createLowerToLinalgPass);
   mlir::registerPass(createFuseMatmulReluPass);
+  mlir::registerPass(createLowerToLLVMPass);
 }
 
 } // namespace ten

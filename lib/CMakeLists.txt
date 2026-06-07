@@ -14,6 +14,7 @@ add_library(TensorOps STATIC
   TensorOpsPasses.cpp
   Conversion/TensorOpsToLinalg.cpp
   Fusion/FuseMatmulRelu.cpp
+  LowerTensorOpsToLLVM.cpp
 )
 
 target_link_libraries(TensorOps PUBLIC
@@ -23,6 +24,15 @@ target_link_libraries(TensorOps PUBLIC
   MLIRLinalgTransforms
   MLIRTensorDialect
   MLIRFuncDialect
+  MLIRSCFDialect
+  MLIRSCFToControlFlow
+  MLIRBufferizationTransforms
+  MLIRControlFlowDialect
+  MLIRMemRefDialect
+  MLIRMemRefToLLVM
+  MLIRFuncToLLVM
+  MLIRLLVMDialect
+  MLIRReconcileUnrealizedCasts
 )
 
 target_include_directories(TensorOps PUBLIC

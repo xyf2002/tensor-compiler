@@ -25,6 +25,12 @@ std::unique_ptr<mlir::Pass> createLowerToLinalgPass();
 std::unique_ptr<mlir::Pass> createFuseMatmulReluPass();
 
 //===----------------------------------------------------------------------===//
+// Pipeline: Linalg -> LLVM
+//===----------------------------------------------------------------------===//
+
+std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
+
+//===----------------------------------------------------------------------===//
 // Pipeline builder (lowering + fusion)
 //===----------------------------------------------------------------------===//
 
