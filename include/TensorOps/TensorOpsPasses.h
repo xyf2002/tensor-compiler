@@ -37,6 +37,12 @@ std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
 std::unique_ptr<mlir::Pass> createLowerToNVVMPass();
 
 //===----------------------------------------------------------------------===//
+// Pipeline: Linalg -> ROCDL (AMD GPU)
+//===----------------------------------------------------------------------===//
+
+std::unique_ptr<mlir::Pass> createLowerToROCDLPass();
+
+//===----------------------------------------------------------------------===//
 // Pipeline builder (lowering + fusion)
 //===----------------------------------------------------------------------===//
 

@@ -16,6 +16,7 @@ add_library(TensorOps STATIC
   Fusion/FuseMatmulRelu.cpp
   LowerTensorOpsToLLVM.cpp
   LowerTensorOpsToNVVM.cpp
+  LowerTensorOpsToROCDL.cpp
 )
 
 target_link_libraries(TensorOps PUBLIC
@@ -38,6 +39,8 @@ target_link_libraries(TensorOps PUBLIC
   MLIRGPUTransforms
   MLIRGPUToNVVMTransforms
   MLIRNVVMDialect
+  MLIRGPUToROCDLTransforms
+  MLIRROCDLDialect
   MLIRReconcileUnrealizedCasts
 )
 

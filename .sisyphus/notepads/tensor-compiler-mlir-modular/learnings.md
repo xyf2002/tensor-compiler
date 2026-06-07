@@ -30,3 +30,24 @@
 - libcuda.so accessible at /usr/lib/x86_64-linux-gnu/libcuda.so
 - cuda.h available at /usr/include/cuda.h
 - RTX 4080 = sm_89 (Ada Lovelace)
+
+### Test File Creation (Task 10)
+- Created 4 FileCheck test files in `tests/`: `conversion.mlir`, `fusion.mlir`, `cpu_lowering.mlir`, `gpu_nvvm.mlir`
+- All 5 tests pass: smoke.mlir (existing) + 4 new tests = 5/5 PASS
+- Key gotchas encountered:
+  - **CHECK-LABEL substring matching**: `CHECK-LABEL: func @test_cpu` matches `func @test_cpu_relu` — use unique function names or `func.func @name` to avoid ambiguity
+  - **CHECK ordering matters**: In LLVM lowering, `llvm.call @malloc` appears before `llvm.getelementptr` — checks must be in output order
+  - **`llvm.func @malloc` at module level**: Module-level declarations appear before `func.func` — cannot be matched via CHECK after CHECK-LABEL (CHECK-LABEL resets scan to after the matched label)
+  - **NVVM `nvvm.kernel` attribute**: On very long function attribute lines — prefer matching `nvvm.read.ptx.sreg.ctaid.x` ops instead
+  - Pass flag names verified: `--tensor-to-linalg`, `--fuse-matmul-relu`, `--lower-tensor-ops-to-llvm`, `--lower-tensor-ops-to-gpu-nvvm`
+- Running tests: `/home/xyf/.local/bin/lit tests/ -v`
+- LIT config at `tests/lit.cfg.py` uses `%tensor-opt` → `tensor-opt` binary
+
+## Task 13 - ROCDL Lowering Pass
+
+- Created `lib/LowerTensorOpsToROCDL.cpp` following the NVVM pass pattern
+- **Key difference from NVVM**: Use `createLowerGpuOpsToROCDLOpsPass()` (not `createConvertGpuOpsToROCDLOps()` which doesn't exist). This is auto-generated via `GEN_PASS_DECL_CONVERTGPUOPSTOROCDLOPS` + `#include "mlir/Conversion/Passes.h.inc"` and is available through `mlir/Conversion/Passes.h` which includes `mlir/Conversion/GPUToROCDL/GPUToROCDLPass.h`
+- CMake link deps needed: `MLIRGPUToROCDLTransforms` and `MLIRROCDLDialect`
+- Pass argument: `lower-tensor-ops-to-gpu-rocdl`, factory: `ten::createLowerToROCDLPass()`
+- Pipeline: OneShotBufferize → LinalgGeneralize → LinalgToParallelLoops → GpuMapParallelLoops → ParallelLoopToGpu → GpuKernelOutlining → LowerGpuOpsToROCDLOpsPass → ReconcileUnrealizedCasts
+- Verification: `--help | grep rocdl` shows the pass, and running on a tensor matmul test produces `rocdl.*` ops inside a `gpu.module`
