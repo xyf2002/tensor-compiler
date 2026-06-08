@@ -39,10 +39,58 @@ struct MatmulOpLowering : public OpRewritePattern<ten::MatmulOp> {
                                 PatternRewriter &rewriter) const override {
     auto loc = op.getLoc();
     auto resultType = mlir::cast<RankedTensorType>(op.getResult().getType());
-    Value init = rewriter.create<tensor::EmptyOp>(loc, resultType.getShape(),
-                                                   resultType.getElementType());
-    rewriter.replaceOpWithNewOp<linalg::MatmulOp>(
-        op, resultType, ValueRange{op.getLhs(), op.getRhs()}, init);
+
+    // Check for fused_relu attribute (set by --fuse-matmul-relu)
+    if (op->hasAttr("fused_relu")) {
+      // Fused matmul+relu as a single linalg.generic with contraction.
+      // Semantics: C(m,n) = max(0, sum_k A(m,k) * B(k,n))
+      // One region computes multiply-accumulate and applies max(0, x).
+      auto ctx = rewriter.getContext();
+      auto m = rewriter.getAffineDimExpr(0);
+      auto n = rewriter.getAffineDimExpr(1);
+      auto k = rewriter.getAffineDimExpr(2);
+
+      SmallVector<AffineMap> indexMaps = {
+          AffineMap::get(3, 0, {m, k}, ctx),   // A: (m, k)
+          AffineMap::get(3, 0, {k, n}, ctx),   // B: (k, n)
+          AffineMap::get(3, 0, {m, n}, ctx),   // C: (m, n)
+      };
+      SmallVector<utils::IteratorType> iteratorTypes = {
+          utils::IteratorType::parallel,   // m
+          utils::IteratorType::parallel,   // n
+          utils::IteratorType::reduction,  // k
+      };
+
+      // Zero-filled init tensor for the reduction
+      Value zeroInit = rewriter.create<arith::ConstantOp>(
+          loc, DenseElementsAttr::get(resultType,
+               rewriter.getZeroAttr(resultType.getElementType())));
+
+      auto genericOp = rewriter.create<linalg::GenericOp>(
+          loc, resultType,
+          ValueRange{op.getLhs(), op.getRhs()}, ValueRange{zeroInit},
+          indexMaps, iteratorTypes,
+          [](OpBuilder &b, Location loc, ValueRange args) {
+            // args[0]=A, args[1]=B, args[2]=accumulator
+            Value mul = b.create<arith::MulFOp>(loc, args[0], args[1]);
+            Value add = b.create<arith::AddFOp>(loc, args[2], mul);
+            // Apply ReLU: max(0, add)
+            Value zero = b.create<arith::ConstantOp>(
+                loc, b.getF32FloatAttr(0.0f));
+            Value cmp = b.create<arith::CmpFOp>(
+                loc, arith::CmpFPredicate::OGT, add, zero);
+            Value relu = b.create<arith::SelectOp>(loc, cmp, add, zero);
+            b.create<linalg::YieldOp>(loc, relu);
+          });
+
+      rewriter.replaceOp(op, genericOp.getResult(0));
+    } else {
+      // Standard matmul (no fusion)
+      Value init = rewriter.create<tensor::EmptyOp>(
+          loc, resultType.getShape(), resultType.getElementType());
+      rewriter.replaceOpWithNewOp<linalg::MatmulOp>(
+          op, resultType, ValueRange{op.getLhs(), op.getRhs()}, init);
+    }
     return success();
   }
 };

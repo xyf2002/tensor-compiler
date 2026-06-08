@@ -1,11 +1,19 @@
 // RUN: tensor-opt %s -fuse-matmul-relu -tensor-to-linalg -split-input-file | FileCheck %s
 
-// Positive test: matmul followed by relu should be fused (relu absorbed)
+// Positive test: matmul followed by relu should be fused into a single
+// linalg.generic contraction that computes matmul + max(0, x).
 // CHECK-LABEL: func @test_fusion
 func.func @test_fusion(%a: tensor<4x8xf32>, %b: tensor<8x16xf32>) -> tensor<4x16xf32> {
-  // After fusion + lowering, only linalg.matmul remains (relu is absorbed)
-  // CHECK: linalg.matmul
-  // CHECK-NOT: linalg.generic
+  // After fusion + lowering, a single linalg.generic with reduction
+  // (the contraction) that yields max(0, acc) instead of plain acc.
+  // CHECK: linalg.generic
+  // CHECK-SAME: reduction
+  // CHECK: arith.mulf
+  // CHECK: arith.addf
+  // CHECK: arith.cmpf ogt
+  // CHECK: arith.select
+  // CHECK: linalg.yield
+  // CHECK-NOT: linalg.matmul
   %0 = ten.matmul %a, %b : tensor<4x8xf32>, tensor<8x16xf32> -> tensor<4x16xf32>
   %1 = ten.relu %0 : tensor<4x16xf32> -> tensor<4x16xf32>
   func.return %1 : tensor<4x16xf32>
